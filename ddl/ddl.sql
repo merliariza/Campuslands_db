@@ -350,7 +350,6 @@ CREATE TABLE session_attendance (
     camper_id INT NOT NULL,
     attendance_status VARCHAR(20) NOT NULL,
     arrival_time TIME,
-    comments TEXT,
     FOREIGN KEY (session_schedule_id) REFERENCES session_schedules(id),
     FOREIGN KEY (camper_id) REFERENCES campers(id),
     UNIQUE (session_schedule_id, camper_id)

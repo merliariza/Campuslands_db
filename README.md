@@ -30,6 +30,6 @@ El modelo de datos incluye las siguientes tablas principales:
 - Trainers: Gestiona la información de los instructores
 - AreasEntrenamiento: Administra los espacios físicos para las clases
 
-Aquí puede ver el diagrama completo: ![alt text](Diagrama.png)
+Diagrama campuslands_db: ![alt text](Diagrama.png)
 
 ## Ejemplos de Consultas
