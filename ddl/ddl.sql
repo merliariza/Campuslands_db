@@ -204,9 +204,6 @@ CREATE TABLE modules (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     duration_weeks INT NOT NULL,
-    theory_percentage DECIMAL(4,1) NOT NULL,
-    practice_percentage DECIMAL(4,1) NOT NULL,
-    quizzes_percentage DECIMAL(4,1) NOT NULL,
     FOREIGN KEY (category_id) REFERENCES module_categories(id),
     FOREIGN KEY (skill_id) REFERENCES skills(id)
 );
@@ -355,22 +352,35 @@ CREATE TABLE session_attendance (
     UNIQUE (session_schedule_id, camper_id)
 );
 
---Tabla theory_score 
-
--- Tabla module_evaluations
-CREATE TABLE module_evaluations (
+-- Tabla evaluation_types
+CREATE TABLE evaluation_types (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    camper_id INT NOT NULL,
+    name VARCHAR(30) NOT NULL,
+    weight_percentage DECIMAL(4,1) NOT NULL,
+    description TEXT
+);
+
+-- Tabla evaluations
+CREATE TABLE evaluations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
     module_id INT NOT NULL,
     group_id INT NOT NULL,
-    theory_score DECIMAL(4,1) NOT NULL,
-    practice_score DECIMAL(4,1) NOT NULL,
-    quizzes_score DECIMAL(4,1) NOT NULL,
-    final_score DECIMAL(4,1) NOT NULL,
-    evaluation_date DATE NOT NULL,
-    FOREIGN KEY (camper_id) REFERENCES campers(id),
+    evaluation_type_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
     FOREIGN KEY (module_id) REFERENCES modules(id),
-    FOREIGN KEY (group_id) REFERENCES training_groups(id)
+    FOREIGN KEY (group_id) REFERENCES training_groups(id),
+    FOREIGN KEY (evaluation_type_id) REFERENCES evaluation_types(id)
+);
+
+-- Tabla evaluation_scores 
+CREATE TABLE evaluation_scores (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    evaluation_id INT NOT NULL,
+    camper_id INT NOT NULL,
+    score DECIMAL(4,1) NOT NULL,
+    FOREIGN KEY (evaluation_id) REFERENCES evaluations(id),
+    FOREIGN KEY (camper_id) REFERENCES campers(id),
+    UNIQUE (evaluation_id, camper_id)
 );
 
 -- Tabla camper_skills
