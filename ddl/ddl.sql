@@ -355,6 +355,8 @@ CREATE TABLE session_attendance (
     UNIQUE (session_schedule_id, camper_id)
 );
 
+--Tabla theory_score 
+
 -- Tabla module_evaluations
 CREATE TABLE module_evaluations (
     id INT PRIMARY KEY AUTO_INCREMENT,
