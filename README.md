@@ -18,7 +18,6 @@ Para realizar las consultas y funcionalidades avanzadas ejecute:
 - [dql_procedimientos.sql](dql_procedimientos/dql_procedimientos.sql): Procedimientos almacenados
 - [dql_funciones.sql](dql_funciones/dql_funciones.sql): Funciones
 - [dql_triggers.sql](dql_triggers/dql_triggers.sql):  Triggers
-- [dql_eventos.sql](dql_eventos/dql_eventos.sql):  Eventos
 
 ## Estructura de la Base de Datos
 
