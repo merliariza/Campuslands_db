@@ -246,15 +246,15 @@ DELIMITER ;
 ALTER TABLE trainers ADD COLUMN status_id INT;
 
 INSERT INTO trainers (person_id, acronym, status_id)
-SELECT 1, 'T1', 1
+SELECT 1, 'T', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM trainers 
-    WHERE person_id = 1 AND acronym = 'T1'
+    WHERE person_id = 1 AND acronym = 'T'
 );
 SELECT t.id, t.acronym, p.document_number
 FROM trainers t
 JOIN persons p ON t.person_id = p.id
-WHERE t.acronym = 'T1' AND p.document_number = '123456789';
+WHERE t.acronym = 'T' AND p.document_number = '123456789';
 
 -- 8. Al asignar un área, validar que no exceda su capacidad.
 DELIMITER //
@@ -737,6 +737,7 @@ FROM evaluation_scores es
 WHERE es.camper_id = 1 AND es.evaluation_id = 1;
 
 -- 20. Al modificar una ruta, notificar cambios a los trainers asignados.
+ALTER TABLE routes ADD COLUMN campus_id INT;
 DELIMITER //
 CREATE TRIGGER tr_notify_trainers_on_route_change
 AFTER UPDATE ON routes

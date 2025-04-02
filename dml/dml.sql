@@ -132,10 +132,10 @@ INSERT INTO guardians (camper_id, person_id, relationship) VALUES
 -- 16. Tabla trainers
 
 INSERT INTO trainers (person_id, campus_id, acronym) VALUES 
-(1, 1, 'JGP'), (2, 2, 'MAG'), (3, 3, 'CRR'),
-(4, 4, 'AMC'), (5, 5, 'LGG'), (6, 1, 'SLL'),
-(7, 2, 'PEH'), (8, 3, 'LAD'), (9, 4, 'ANM'),
-(10, 5, 'CAT');
+(1, 1, 'J'), (2, 2, 'M'), (3, 3, 'C'),
+(4, 4, 'A'), (5, 5, 'L'), (6, 1, 'S'),
+(7, 2, 'P'), (8, 3, 'L'), (9, 4, 'A'),
+(10, 5, 'C');
 
 -- 17. Tabla competencias
 

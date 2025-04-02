@@ -152,7 +152,7 @@ CREATE TABLE trainers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     person_id INT NOT NULL,
     campus_id INT NOT NULL,
-    acronym VARCHAR(3) NOT NULL,
+    acronym VARCHAR(1) NOT NULL,
     FOREIGN KEY (person_id) REFERENCES persons(id),
     FOREIGN KEY (campus_id) REFERENCES branches(id)
 );
