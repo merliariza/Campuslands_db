@@ -170,7 +170,32 @@ DELIMITER ;
 SELECT nota_modulo(1);
 
 -- 9. Calcular la tasa de aprobación de una ruta.
-
+DELIMITER //
+CREATE FUNCTION tasa_aprobacion_ruta(
+    p_route_id INT,
+    p_nota_minima DECIMAL(4,1)
+) RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+    DECLARE total_campers INT;
+    DECLARE aprobados INT;
+    DECLARE tasa DECIMAL(5,2);
+    
+    SELECT COUNT(DISTINCT cg.camper_id) INTO total_campers
+    FROM camper_groups cg
+    JOIN training_groups tg ON cg.group_id = tg.id
+    WHERE tg.route_id = p_route_id;
+    
+    SELECT COUNT(DISTINCT g.camper_id) INTO aprobados
+    FROM graduates g
+    WHERE g.route_id = p_route_id AND g.final_grade >= p_nota_minima;
+    
+    SET tasa = (aprobados * 100.0 / NULLIF(total_campers, 0));
+    
+    RETURN IFNULL(tasa, 0);
+END //
+DELIMITER ;
+SELECT tasa_aprobacion_ruta(1, 65) AS tasa_aprobacion;
 
 -- 10. Verificar si un trainer tiene horario disponible.
 DELIMITER //
@@ -192,7 +217,7 @@ BEGIN
     RETURN IFNULL(disponible, FALSE);
 END //
 DELIMITER ;
-SELECT 
+SELECT trainer_horario_disponible(1, 2, 3) AS horario_disponible;
 
 -- 11. Obtener el promedio de notas por ruta.
 DELIMITER //
@@ -227,9 +252,117 @@ DELIMITER ;
 SELECT rutas_asignadas_trainer(1);
 
 -- 13. Verificar si un camper puede ser graduado.
+DELIMITER //
+CREATE FUNCTION puede_graduarse(
+    p_camper_id INT,
+    p_route_id INT,
+    p_nota_minima DECIMAL(4,1)
+) RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE modulos_ruta INT;
+    DECLARE modulos_aprobados INT;
+    DECLARE graduado BOOLEAN;
+    
+    SELECT COUNT(*) INTO modulos_ruta
+    FROM route_modules
+    WHERE route_id = p_route_id;
+    
+    SELECT COUNT(DISTINCT e.module_id) INTO modulos_aprobados
+    FROM evaluation_scores es
+    JOIN evaluations e ON es.evaluation_id = e.id
+    JOIN route_modules rm ON e.module_id = rm.module_id
+    WHERE es.camper_id = p_camper_id
+    AND rm.route_id = p_route_id
+    GROUP BY e.module_id
+    HAVING AVG(es.score) >= p_nota_minima;
+    
+    SET graduado = (modulos_aprobados = modulos_ruta);
+    
+    RETURN graduado;
+END //
+DELIMITER ;
+SELECT puede_graduarse(1, 1, 65) AS puede_graduarse;
+
 -- 14. Obtener el estado actual de un camper en función de sus evaluaciones.
+DELIMITER //
+CREATE FUNCTION estado_camper(
+    p_camper_id INT,
+    p_nota_minima DECIMAL(4,1)
+) RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+    DECLARE promedio DECIMAL(4,1);
+    DECLARE estado VARCHAR(50);
+    
+    SELECT AVG(es.score) INTO promedio
+    FROM evaluation_scores es
+    JOIN evaluations e ON es.evaluation_id = e.id
+    WHERE es.camper_id = p_camper_id;
+    
+    IF promedio IS NULL THEN
+        SET estado = 'Sin evaluaciones';
+    ELSEIF promedio >= p_nota_minima THEN
+        SET estado = 'Aprobado';
+    ELSEIF promedio >= (p_nota_minima - 10) THEN
+        SET estado = 'En riesgo';
+    ELSE
+        SET estado = 'Reprobado';
+    END IF;
+    
+    RETURN estado;
+END //
+DELIMITER ;
+SELECT estado_camper(1, 65) AS estado_camper;
+
 -- 15. Calcular la carga horaria semanal de un trainer.
+DELIMITER //
+CREATE FUNCTION carga_horaria_trainer(
+    p_trainer_id INT
+) RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE horas INT;
+    
+    SELECT COUNT(*) * 
+    (SELECT TIME_TO_SEC(TIMEDIFF(tb.end_time, tb.start_time))/3600 
+     FROM time_blocks tb LIMIT 1) INTO horas
+    FROM trainer_schedules ts
+    JOIN time_blocks tb ON ts.time_block_id = tb.id
+    WHERE ts.trainer_id = p_trainer_id AND ts.is_available = FALSE;
+    
+    RETURN IFNULL(horas, 0);
+END //
+DELIMITER ;
+SELECT carga_horaria_trainer(1) AS carga_horaria_semanal;
+
 -- 16. Determinar si una ruta tiene módulos pendientes por evaluación.
+DELIMITER //
+CREATE FUNCTION modulos_pendientes_evaluacion(
+    p_route_id INT,
+    p_group_id INT
+) RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE modulos_ruta INT;
+    DECLARE modulos_evaluados INT;
+    DECLARE pendientes BOOLEAN;
+    
+    SELECT COUNT(*) INTO modulos_ruta
+    FROM route_modules
+    WHERE route_id = p_route_id;
+    
+    SELECT COUNT(DISTINCT e.module_id) INTO modulos_evaluados
+    FROM evaluations e
+    WHERE e.group_id = p_group_id;
+    
+    SET pendientes = (modulos_evaluados < modulos_ruta);
+    
+    RETURN pendientes;
+END //
+DELIMITER ;
+SELECT modulos_pendientes_evaluacion(1, 1) AS modulos_pendientes;
+
 -- 17. Calcular el promedio general del programa.
 DELIMITER //
 CREATE FUNCTION promedio_general_programa() RETURNS DECIMAL(4,2)
@@ -246,5 +379,68 @@ DELIMITER ;
 SELECT promedio_general_programa();
 
 -- 18. Verificar si un horario choca con otros entrenadores en el área.
+DELIMITER //
+CREATE FUNCTION horario_choca(
+    p_trainer_id INT,
+    p_classroom_id INT,
+    p_dia_semana INT,
+    p_bloque_horario INT
+) RETURNS BOOLEAN
+DETERMINISTIC   
+
+BEGIN   
+    DECLARE choca BOOLEAN;
+    SELECT COUNT(*) INTO choca
+    FROM trainer_schedules ts
+    JOIN time_blocks tb ON ts.time_block_id = tb.id
+    WHERE ts.trainer_id != p_trainer_id
+    AND ts.classroom_id = p_classroom_id
+    AND ts.day_of_week = p_dia_semana
+    AND ts.time_block_id = p_bloque_horario
+    AND ts.is_available = FALSE;
+    RETURN IFNULL(choca, FALSE);
+END //
+DELIMITER ;
+SELECT horario_choca(1, 1, 2, 3) AS horario_choca;
+
 -- 19. Calcular cuántos campers están en riesgo en una ruta específica.
+DELIMITER //
+CREATE FUNCTION campers_en_riesgo_ruta(
+    p_route_id INT,
+    p_nota_minima DECIMAL(4,1)
+) RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE en_riesgo INT;
+    
+    SELECT COUNT(DISTINCT cg.camper_id) INTO en_riesgo
+    FROM camper_groups cg
+    JOIN training_groups tg ON cg.group_id = tg.id
+    WHERE tg.route_id = p_route_id
+    AND cg.status = 'Activo'
+    AND estado_camper(cg.camper_id, p_nota_minima) = 'En riesgo';
+    
+    RETURN IFNULL(en_riesgo, 0);
+END //
+DELIMITER ;
+SELECT campers_en_riesgo_ruta(1, 65) AS campers_en_riesgo;
+
 -- 20. Consultar el número de módulos evaluados por un camper.
+DELIMITER //
+CREATE FUNCTION modulos_evaluados_camper(
+    p_camper_id INT
+) RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE evaluados INT;
+    
+    SELECT COUNT(DISTINCT e.module_id) INTO evaluados
+    FROM evaluation_scores es
+    JOIN evaluations e ON es.evaluation_id = e.id
+    WHERE es.camper_id = p_camper_id;
+    
+    RETURN IFNULL(evaluados, 0);
+END //
+DELIMITER ;
+
+SELECT modulos_evaluados_camper(1) AS modulos_evaluados;

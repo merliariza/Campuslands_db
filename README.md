@@ -19,6 +19,9 @@ Para realizar las consultas y funcionalidades avanzadas ejecute:
 - [dql_funciones.sql](dql_funciones/dql_funciones.sql): Funciones
 - [dql_triggers.sql](dql_triggers/dql_triggers.sql):  Triggers
 
+-Para todas las funcionalidades ejecute:
+- [Campuslands_db.md](/Campuslands_db.md):  Campuslands_db
+
 ## Estructura de la Base de Datos
 
 El modelo de datos incluye las siguientes tablas principales:
@@ -30,5 +33,3 @@ El modelo de datos incluye las siguientes tablas principales:
 - AreasEntrenamiento: Administra los espacios físicos para las clases
 
 Diagrama campuslands_db: ![alt text](Diagrama.png)
-
-## Ejemplos de Consultas

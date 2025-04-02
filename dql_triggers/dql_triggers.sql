@@ -1,4 +1,4 @@
--- Triggers-- Triggers
+-- Triggers
 -- 1. Al insertar una evaluación, calcular automáticamente la nota final.
 DELIMITER //
 CREATE TRIGGER tr_calculate_final_grade
